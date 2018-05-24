@@ -1,0 +1,62 @@
+---
+# tasks file for security-roles
+
+- name: Create Security group for app servers
+  os_security_group:
+    cloud: ospcloud
+    state: present
+    name: appsrv_ports
+    description: security group for app servers
+
+- name: Configure app server security group
+  os_security_group_rule:
+    cloud: ospcloud
+    security_group: appsrv_ports
+    protocol: tcp
+    port_range_min: "{{ item.port }}"
+    port_range_max: "{{ item.port }}"
+    remote_ip_prefix: "{{ item.prefix }}"
+  with_items:
+    - { port: "80", prefix: "0.0.0.0/0" } 
+    - { port: "8080", prefix: "0.0.0.0/0" } 
+    - { port: "22", prefix: "0.0.0.0/0" } 
+
+- name: Create Security group for frontend servers
+  os_security_group:
+    cloud: ospcloud
+    state: present
+    name: frontend_ports
+    description: security group for frontend servers
+
+- name: Configure frontend server security group
+  os_security_group_rule:
+    cloud: ospcloud
+    security_group: frontend_ports
+    protocol: tcp
+    port_range_min: "{{ item.port }}"
+    port_range_max: "{{ item.port }}"
+    remote_ip_prefix: "{{ item.prefix }}"
+  with_items:
+    - { port: "80", prefix: "0.0.0.0/0" } 
+    - { port: "443", prefix: "0.0.0.0/0" } 
+    - { port: "22", prefix: "0.0.0.0/0" } 
+
+- name: Create Security group for appdb servers
+  os_security_group:
+    cloud: ospcloud
+    state: present
+    name: appdbsrv_ports
+    description: security group for appdbsrv servers
+
+- name: Configure appdb server security group
+  os_security_group_rule:
+    cloud: ospcloud
+    security_group: appdbsrv_ports
+    protocol: tcp
+    port_range_min: "{{ item.port }}"
+    port_range_max: "{{ item.port }}"
+    remote_ip_prefix: "{{ item.prefix }}"
+  with_items:
+    - { port: "5432", prefix: "20.20.20.0/24" } 
+    - { port: "22", prefix: "0.0.0.0/0" } 
+

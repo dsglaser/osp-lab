@@ -1,0 +1,47 @@
+---
+# tasks file for instance
+
+- name: Create Server instance
+  os_server:
+    cloud: ospcloud
+    state: present
+    name: "{{ instance_name }}"
+    image: rhel-guest
+    key_name: ansible_ssh
+    timeout: 200
+    flavor: m2.small
+    nics: 
+     - net-name: int_net
+    meta:
+     group: "{{ group }}"
+     deployment_name: "{{ deployment }}"
+    security_groups: "{{ security_group }}"
+    userdata: |
+      #!/bin/bash
+      curl -o /tmp/openstack.pub http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+      cat /tmp/openstack.pub >> /home/cloud-user/.ssh/authorized_keys
+      curl -o /tmp/internal.repo http://www.opentlc.com/download/ansible_bootcamp/repo/internal.repo
+      cp /tmp/internal.repo /etc/yum.repos.d/internal.repo 
+  register: instanceip
+
+- name: add floating IP to "{{ instance_name }}"
+  os_floating_ip:
+    cloud: ospcloud
+    state: present
+    reuse: yes
+    server: "{{ instance_name }}"
+    network: ext_net
+    wait: true
+    timeout: 180
+  register: instancefloatingip
+
+- name: Show "{{ instanceip }}" public IP
+  debug: var=instancefloatingip.floating_ip.floating_ip_address
+
+#- name: Wait for instance to become available
+#  wait_for:
+#    host: "{{ instancefloatingip.floating_ip.floating_ip_address }}"
+#    port: 22
+#    search_regex: OpenSSH
+#    timeout: 600
+#  delegate_to: "{{ inventory_hostname }}"
