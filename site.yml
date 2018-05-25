@@ -53,13 +53,28 @@
    - { name: common }
    - { name: tomcat }
 
+  #Smoketest haproxy and tomcat
+- hosts: frontend
+  become: false
+  tasks:
+  - name: Smoketest
+    uri:
+      url: http://{{ ansible_hostname }}
+      return_content: yes
+    register: webpage
+    delegate_to: "{{ ansible_hostname }}"
+
+  - name: Fail if AWESOME is not in the page content
+    fail:
+    when: "'Ansible' not in webpage.content"
+
 - name: deploy postgres
   hosts: appdbs
   gather_facts: true
   become: true
 
   vars:
-   - include_vars: vautl.yml
+   - include_vars: vault.yml
 
   roles:
    - { name: common }

@@ -24,6 +24,11 @@
       cp /tmp/internal.repo /etc/yum.repos.d/internal.repo 
   register: instanceip
 
+- name: Start Server in case OpenStack went down overnight
+  os_server_action:
+    cloud: ospcloud
+    action: start
+
 - name: add floating IP to "{{ instance_name }}"
   os_floating_ip:
     cloud: ospcloud
@@ -38,10 +43,10 @@
 - name: Show "{{ instanceip }}" public IP
   debug: var=instancefloatingip.floating_ip.floating_ip_address
 
-#- name: Wait for instance to become available
-#  wait_for:
-#    host: "{{ instancefloatingip.floating_ip.floating_ip_address }}"
-#    port: 22
-#    search_regex: OpenSSH
-#    timeout: 600
-#  delegate_to: "{{ inventory_hostname }}"
+- name: Wait for instance to become available
+  wait_for:
+    host: "{{ instancefloatingip.floating_ip.floating_ip_address }}"
+    port: 22
+    search_regex: OpenSSH
+    timeout: 600
+  delegate_to: "{{ inventory_hostname }}"
