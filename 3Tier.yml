@@ -1,0 +1,54 @@
+- name: deploy haproxy
+  hosts: frontends
+  gather_facts: true
+  become: true
+
+  vars:
+   - include_vars: vault.yml
+
+  roles:
+   - { name: common }
+   - { name: haproxy }
+
+- name: deploy tomcat, postgres, and apache
+  hosts: apps
+  gather_facts: true
+  become: true
+
+  vars:
+   - include_vars: vault.yml
+
+  roles:
+   - { name: common }
+   - { name: tomcat }
+
+  #Smoketest haproxy and tomcat
+- hosts: frontends
+  become: false
+  tasks:
+  - name: Smoketest haproxy
+    uri:
+      url: http://{{ ansible_hostname }}
+      return_content: yes
+    register: webpage
+    delegate_to: "{{ ansible_hostname }}"
+
+  - name: Fail if Ansible is not in the page content
+    import_role:
+       name: instance
+       vars_from: teardown.yml
+    when: "'Ansible' not in webpage.content"
+
+- name: deploy postgres
+  hosts: appdbs
+  gather_facts: true
+  become: true
+
+  vars:
+   - include_vars: vault.yml
+
+  roles:
+   - { name: common }
+   - { name: geerlingguy.postgresql }
+
+

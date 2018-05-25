@@ -1,0 +1,38 @@
+---
+# tasks file for instance
+
+- name: remove floating IP from "{{ instance_name }}"
+  os_floating_ip:
+    cloud: ospcloud
+    state: absent
+    reuse: yes
+    server: "{{ instance_name }}"
+    network: ext_net
+    wait: true
+    timeout: 180
+  register: instancefloatingip
+
+- name: Remove Server instance "{{ instance_name }}"
+  os_server:
+    cloud: ospcloud
+    state: absent
+    name: "{{ instance_name }}"
+    image: rhel-guest
+    key_name: ansible_ssh
+    timeout: 200
+    flavor: m2.small
+    nics: 
+     - net-name: int_net
+    meta:
+     group: "{{ group }}"
+     deployment_name: "{{ deployment }}"
+    security_groups: "{{ security_group }}"
+    userdata: |
+      #!/bin/bash
+      curl -o /tmp/openstack.pub http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+      cat /tmp/openstack.pub >> /home/cloud-user/.ssh/authorized_keys
+      curl -o /tmp/internal.repo http://www.opentlc.com/download/ansible_bootcamp/repo/internal.repo
+      cp /tmp/internal.repo /etc/yum.repos.d/internal.repo 
+  register: instanceip
+
+

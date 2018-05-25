@@ -1,0 +1,22 @@
+---
+- hosts: jumpbox
+  become: true
+  tasks:
+  - name: Add hosts in memory
+    include_role:
+       name: facts
+
+  #Smoketest haproxy and tomcat
+- hosts: frontends
+  become: false
+  tasks:
+  - name: Smoketest haproxy and tomcat
+    uri:
+      url: http://{{ inventory_hostname }}
+      return_content: yes
+    register: webpage
+
+  - name: Fail if AWESOME is not in the page content
+    include_tasks: teardown.yml
+    when: "'Ansible' not in webpage.content"
+

@@ -1,0 +1,33 @@
+- hosts: jumpbox
+#  become: yes
+  gather_facts: true
+
+  vars:
+   - provision: "teardown"
+
+  tasks:
+  - name: Add hosts in memory
+    include_role:
+       name: facts
+
+##Create Fronend Instance
+  - name: Create frontend instance
+    include_role:
+       name: instance
+       vars_from: frontend.yaml
+###Create App1 server
+  - name: Create app1 instance
+    include_role:
+       name: instance
+       vars_from: app1.yaml
+##Create App2 server
+  - name: Create app2 instance
+    include_role:
+       name: instance
+       vars_from: app2.yaml
+##Create DB server
+  - name: Create db instance
+    include_role:
+       name: instance
+       vars_from: db.yaml
+

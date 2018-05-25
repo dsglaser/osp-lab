@@ -1,82 +1,17 @@
 - hosts: jumpbox
 #  become: yes
+  vars:
+  - provision: "create"
+
   roles:
-     - network
-     - keypair
-     - security-roles
+#     - network
+#     - keypair
+#     - security-roles
   tasks:
-##Create Fronend Instance
-  - name: Create frontend instance
-    include_role:
-       name: instance
-       vars_from: frontend.yaml
-###Create App1 server
-  - name: Create app1 instance
-    include_role:
-       name: instance
-       vars_from: app1.yaml
-##Create App2 server
-  - name: Create app2 instance
-    include_role:
-       name: instance
-       vars_from: app2.yaml
-##Create DB server
-  - name: Create db instance
-    include_role:
-       name: instance
-       vars_from: db.yaml
-  - name: Add hosts in memory
-    include_role:
-       name: facts
-
-- name: deploy haproy
-  hosts: frontends
-  gather_facts: true
-  become: true
-
-  vars:
-   - include_vars: vault.yml
-
-  roles:
-   - { name: common }
-   - { name: haproxy }
-
-- name: deploy tomcat, postgres, and apache
-  hosts: apps
-  gather_facts: true
-  become: true
-
-  vars:
-   - include_vars: vault.yml
-
-  roles:
-   - { name: common }
-   - { name: tomcat }
-
-  #Smoketest haproxy and tomcat
-- hosts: frontend
-  become: false
-  tasks:
-  - name: Smoketest
-    uri:
-      url: http://{{ ansible_hostname }}
-      return_content: yes
-    register: webpage
-    delegate_to: "{{ ansible_hostname }}"
-
-  - name: Fail if AWESOME is not in the page content
-    fail:
-    when: "'Ansible' not in webpage.content"
-
-- name: deploy postgres
-  hosts: appdbs
-  gather_facts: true
-  become: true
-
-  vars:
-   - include_vars: vault.yml
-
-  roles:
-   - { name: common }
-   - { name: geerlingguy.postgresql }
-
+  - name: Provision OSP infrastructure
+    include_tasks: provision_osp.yml
+  
+  
+  - name: Deploy application
+    include_tasks: 3Tier.yml
+    
