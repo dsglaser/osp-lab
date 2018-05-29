@@ -16,7 +16,26 @@
       return_content: yes
     register: webpage
 
-  - name: Fail if AWESOME is not in the page content
+  - name: Fail if Ansible is not in the page content
     include_tasks: teardown.yml
     when: "'Ansible' not in webpage.content"
 
+- hosts: appdbs
+  become: false
+  tasks:
+  - name: Smoketest postgresql
+    postgresql_db:
+      name: testdb
+    delegate_to: "{{ inventory_hostname }}"
+    register: dbsmoke
+
+  - name: fail if db smoke did not run correctly
+    include_tasks: teardown.yml
+    when: dbsmoke is not defined
+
+  - name: Remove test database
+    postgresql_db:
+      name: testdb
+      state: absent
+
+ 

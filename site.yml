@@ -4,14 +4,16 @@
   - provision: "create"
 
   roles:
-#     - network
-#     - keypair
-#     - security-roles
+     - network
+     - keypair
+     - security-roles
   tasks:
   - name: Provision OSP infrastructure
     include_tasks: provision_osp.yml
   
-  
-  - name: Deploy application
-    include_tasks: 3Tier.yml
+- name: Deploy application
+  import_playbook: 3Tier.yml
     
+#- name: Smoketest OSP
+#  import_playbook: smoketest.yml
+
