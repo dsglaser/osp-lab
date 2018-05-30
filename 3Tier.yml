@@ -39,13 +39,14 @@
       return_content: yes
     register: webpage
     delegate_to: "{{ ansible_hostname }}"
+    ignore_errors: true
 
   - name: Fail if Ansible is not in the page content
     import_role:
        name: instance
        vars_from: teardown.yml
     when: "'Ansible' not in webpage.content"
-
+    
 - name: deploy postgres
   hosts: appdbs
   gather_facts: true
